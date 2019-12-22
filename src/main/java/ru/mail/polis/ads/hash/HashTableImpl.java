@@ -11,16 +11,16 @@ public class HashTableImpl<Key, Value> implements HashTable<Key, Value> {
 
     private static final int CAPACITY = 16;
     private static final double COEFFICIENT = 0.75;
-    private Node[] nodes;
+    private List<Node> nodes;
     private int size;
     private int capacity = CAPACITY;
     private int usedValue;
 
     public HashTableImpl() {
-        this.nodes = new Node[CAPACITY];
+        this.nodes = new ArrayList<>(CAPACITY);
     }
 
-    private class Node<Key, Value> {
+    private class Node {
         final Key key;
         final int hash;
         Value value;
@@ -48,11 +48,11 @@ public class HashTableImpl<Key, Value> implements HashTable<Key, Value> {
     @Override
     public Value get(@NotNull Key key) {
         int hash = hashCode(key);
-        int i = hash % nodes.length;
-        Node node = nodes[i];
+        int i = hash % nodes.size();
+        Node node = nodes.get(i);
         while (node != null) {
             if (node.hash == hash && key.equals(node.key)) {
-                return (Value) node.value;
+                return node.value;
             }
             node = node.next;
         }
@@ -66,10 +66,10 @@ public class HashTableImpl<Key, Value> implements HashTable<Key, Value> {
     }
 
     private void put(Node x) {
-        int i = x.hash % nodes.length;
-        Node node = nodes[i];
+        int i = x.hash % nodes.size();
+        Node node = nodes.get(i);
         if (node == null) {
-            nodes[i] = x;
+            nodes.set(i, x);
             usedValue++;
             size++;
         } else {
@@ -91,8 +91,8 @@ public class HashTableImpl<Key, Value> implements HashTable<Key, Value> {
         if ((capacity * COEFFICIENT) < usedValue) {
             capacity = capacity * 2;
             usedValue = 0;
-            Node[] oldTable = nodes;
-            nodes = new Node[capacity];
+            List<Node> oldTable = nodes;
+            nodes = new ArrayList<>(capacity);
             for (Node node : oldTable) {
                 while (node != null) {
                     Node next = node.next;
@@ -107,22 +107,22 @@ public class HashTableImpl<Key, Value> implements HashTable<Key, Value> {
     @Override
     public Value remove(@NotNull Key key) {
         int hash = hashCode(key);
-        int i = hash % nodes.length;
-        Node node = nodes[i];
+        int i = hash % nodes.size();
+        Node node = nodes.get(i);
         Node previous = null;
 
         while (node != null) {
             if (key.equals(node.key)) {
                 size--;
                 if (previous == null) {
-                    nodes[i] = node.next;
-                    if (nodes[i] == null) {
+                    nodes.set(i, node.next);
+                    if (nodes.get(i) == null) {
                         usedValue--;
                     }
-                    return (Value) node.value;
+                    return node.value;
                 } else {
                     previous.next = node.next;
-                    return (Value) node.value;
+                    return node.value;
                 }
             }
             previous = node;
